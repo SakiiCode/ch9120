@@ -17,6 +17,9 @@ impl<T: Read + Write> TimeoutBuffer<T> {
     pub fn new(inner: T, timeout: Duration) -> Self {
         Self { inner, timeout }
     }
+    pub fn inner(&mut self) -> &mut T {
+        &mut self.inner
+    }
 }
 
 impl<T: Read + Write> Deref for TimeoutBuffer<T> {

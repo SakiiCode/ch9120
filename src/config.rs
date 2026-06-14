@@ -33,9 +33,11 @@ pub async fn ch9120_store_config<T: Read + Write>(
     rst_pin
         .set_high()
         .map_err(|_| ConfigStoreError::PinAssert)?;
+    #[cfg(feature = "defmt")]
     defmt::info!("Pins OK");
-    delay_ms(500).await;
+    Timer::after_millis(500).await;
 
+    #[cfg(feature = "defmt")]
     defmt::info!("CH9120 started");
     ch9120_set_mode(uart, config.mode as u8).await;
     ch9120_set_local_ip(uart, &config.local_ip.octets()).await;
@@ -55,6 +57,7 @@ pub async fn ch9120_store_config<T: Read + Write>(
 
     (*controller.set_baudrate)(uart, config.transport_baud_rate);
 
+    #[cfg(feature = "defmt")]
     defmt::info!("CH9120 config updated");
     Ok(())
 }
@@ -76,12 +79,14 @@ async fn wait_for_ack<T: Read>(uart: &mut T) {
             }
         }
         Either::Second(_) => {
+            #[cfg(feature = "defmt")]
             defmt::warn!("CH9120 ACK timeout");
         }
     }
 }
 
 async fn uart_puts<T: Write>(uart: &mut T, buf: &[u8]) {
+    #[cfg(feature = "defmt")]
     defmt::debug!("-> {=[u8]:02x}", buf);
 
     uart.write_all(buf).await.expect("Could not send buffer");
@@ -93,11 +98,11 @@ async fn ch9120_tx<T: Write + Read>(uart: &mut T, command: u8, data: &[u8]) {
     let buf_len = 3 + data.len();
     tx[3..buf_len].copy_from_slice(data);
 
-    delay_ms(10).await;
+    Timer::after_millis(10).await;
 
     uart_puts(uart, &tx[0..buf_len]).await;
 
-    delay_ms(10).await;
+    Timer::after_millis(10).await;
 
     wait_for_ack(uart).await;
 }
@@ -168,21 +173,11 @@ async fn ch9120_set_rx_timeout<T: Write + Read>(uart: &mut T, timeout: u32) {
 
 async fn ch9120_end<T: Read + Write>(uart: &mut T) {
     ch9120_tx(uart, 0x0d, &[]).await;
-    delay_ms(200).await;
+    Timer::after_millis(200).await;
 
     ch9120_tx(uart, 0x0e, &[]).await;
-    delay_ms(200).await;
+    Timer::after_millis(200).await;
 
     ch9120_tx(uart, 0x5e, &[]).await;
-    delay_ms(200).await;
-}
-
-#[allow(unused)]
-async fn delay_ms(xms: u32) {
-    Timer::after_millis(xms.into()).await
-}
-
-#[allow(unused)]
-async fn delay_us(xus: u32) {
-    Timer::after_micros(xus.into()).await
+    Timer::after_millis(200).await;
 }

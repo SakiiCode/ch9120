@@ -2,6 +2,20 @@
 name = "ch9120"
 version = "0.1.0"
 edition = "2024"
+description = "Rust driver for the CH9120 Ethernet-to-UART chip"
+repository = "https://codeberg.org/SakiiCode/ch9120"
+license = "MIT"
+keywords = ["ch9120", "ethernet", "uart"]
+categories = ["embedded", "hardware-support", "network-programming", "no-std"]
+
+[lib]
+bench = false
+test = false
+
+[[example]]
+name = "http"
+path = "examples/http.rs"
+required-features = ["defmt"]
 
 [dependencies]
 defmt = { version = "1.0.0", optional = true }
@@ -11,6 +25,31 @@ embassy-time = "0.5.1"
 embedded-hal = "1.0.0"
 embedded-io-async = "0.7.0"
 thiserror = { version = "2.0.18", default-features = false }
+
+[dev-dependencies]
+cortex-m = "0.7"
+cortex-m-rt = "0.7"
+defmt-serial = "0.13.0"
+embassy-executor = "0.10.0"
+embassy-rp = {
+  version = "0.10.0",
+  features = [
+    "binary-info",
+    "critical-section-impl",
+    "defmt",
+    "executor-thread",
+    "rp235xa",
+    "time-driver",
+    "unstable-pac"
+  ]
+}
+embedded-alloc = "0.7.0"
+reqwless = {
+  version = "0.14.0",
+  default-features = false,
+  features = ["alloc", "defmt"]
+}
+static_cell = "2.1.1"
 
 [features]
 defmt = ["dep:defmt", "embassy-futures/defmt", "embedded-io-async/defmt"]

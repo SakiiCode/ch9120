@@ -28,15 +28,15 @@ pub enum Mode {
 #[derive(Debug, Builder)]
 #[builder(no_std, build_fn(error(validation_error = false)), default)]
 pub struct Ch9120Config {
-    mode: Mode,
-    local_ip: Ipv4Addr,
-    gateway: Ipv4Addr,
-    subnet_mask: [u8; 4],
-    local_port: u16,
-    target_ip: Ipv4Addr,
-    target_port: u16,
-    transport_baud_rate: u32,
-    rx_timeout: u32,
+    pub mode: Mode,
+    pub local_ip: Ipv4Addr,
+    pub gateway: Ipv4Addr,
+    pub subnet_mask: [u8; 4],
+    pub local_port: u16,
+    pub target_ip: Ipv4Addr,
+    pub target_port: u16,
+    pub transport_baud_rate: u32,
+    pub rx_timeout: u32,
 }
 
 impl Default for Ch9120Config {
@@ -60,7 +60,7 @@ pub struct Ch9120Driver<T: Read + Write, CFG: OutputPin, RST: OutputPin> {
     uart: TimeoutBuffer<T>,
     cfg_pin: CFG,
     rst_pin: RST,
-    controller: UartController<TimeoutBuffer<T>>,
+    controller: UartController<T>,
 }
 
 impl<T: Read + Write, CFG: OutputPin, RST: OutputPin> Ch9120Driver<T, CFG, RST> {
@@ -70,7 +70,7 @@ impl<T: Read + Write, CFG: OutputPin, RST: OutputPin> Ch9120Driver<T, CFG, RST> 
         cfg_pin: CFG,
         rst_pin: RST,
         timeout: Duration,
-        set_baudrate: impl FnMut(&mut TimeoutBuffer<T>, u32) + 'static,
+        set_baudrate: impl FnMut(&mut T, u32) + 'static,
     ) -> Self {
         Self {
             config: Some(config),
@@ -87,7 +87,7 @@ impl<T: Read + Write, CFG: OutputPin, RST: OutputPin> Ch9120Driver<T, CFG, RST> 
         cfg_pin: CFG,
         rst_pin: RST,
         timeout: Duration,
-        set_baudrate: impl FnMut(&mut TimeoutBuffer<T>, u32) + 'static,
+        set_baudrate: impl FnMut(&mut T, u32) + 'static,
     ) -> Self {
         Self {
             config: None,
@@ -103,7 +103,7 @@ impl<T: Read + Write, CFG: OutputPin, RST: OutputPin> Ch9120Driver<T, CFG, RST> 
         if let Some(config) = &self.config {
             config::ch9120_store_config(
                 config,
-                &mut self.uart,
+                self.uart.inner(),
                 &mut self.cfg_pin,
                 &mut self.rst_pin,
                 &mut self.controller,
@@ -116,6 +116,10 @@ impl<T: Read + Write, CFG: OutputPin, RST: OutputPin> Ch9120Driver<T, CFG, RST> 
 
     pub fn inner(&mut self) -> &mut T {
         &mut self.uart
+    }
+
+    pub fn config(&self) -> Option<&Ch9120Config> {
+        self.config.as_ref()
     }
 }
 
