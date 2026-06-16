@@ -19,8 +19,9 @@ pub enum ConfigStoreError {
     MissingConfig,
 }
 
-pub async fn ch9120_store_config<T: Read + Write>(
+pub async fn configure<T: Read + Write>(
     config: &Ch9120Config,
+    persistent: bool,
     uart: &mut T,
     cfg_pin: &mut impl OutputPin,
     rst_pin: &mut impl OutputPin,
@@ -49,7 +50,7 @@ pub async fn ch9120_store_config<T: Read + Write>(
     ch9120_set_baud_rate(uart, config.transport_baud_rate).await;
     ch9120_set_rx_timeout(uart, config.rx_timeout).await;
 
-    ch9120_end(uart).await;
+    ch9120_end(uart, persistent).await;
 
     cfg_pin
         .set_high()
@@ -171,9 +172,11 @@ async fn ch9120_set_rx_timeout<T: Write + Read>(uart: &mut T, timeout: u32) {
     Timer::after(CONFIG_DELAY).await;
 }
 
-async fn ch9120_end<T: Read + Write>(uart: &mut T) {
-    ch9120_tx(uart, 0x0d, &[]).await;
-    Timer::after_millis(200).await;
+async fn ch9120_end<T: Read + Write>(uart: &mut T, write_to_eeprom: bool) {
+    if write_to_eeprom {
+        ch9120_tx(uart, 0x0d, &[]).await;
+        Timer::after_millis(200).await;
+    }
 
     ch9120_tx(uart, 0x0e, &[]).await;
     Timer::after_millis(200).await;

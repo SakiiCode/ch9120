@@ -61,7 +61,7 @@ async fn main(_spawner: Spawner) {
     defmt::info!("Defmt OK");
 
     let mut driver = setup_ch9120(p.UART1, p.PIN_20, p.PIN_21, p.PIN_18, p.PIN_19).await;
-    driver.store_config().await.unwrap();
+    driver.configure(true).await.unwrap();
 
     let path = "/";
     let config = driver.config().unwrap();

@@ -99,10 +99,19 @@ impl<T: Read + Write, CFG: OutputPin, RST: OutputPin> Ch9120Driver<T, CFG, RST> 
             },
         }
     }
-    pub async fn store_config(&mut self) -> Result<(), ConfigStoreError> {
+
+    /// Set chip configuration
+    ///
+    /// ### Parameters
+    /// * `persistent`: If the configuration should be written to the onboard EEPROM
+    ///
+    /// The stored onboard configuration will be loaded automatically after a reset.
+    /// It is not recommended to overwrite it every time.
+    pub async fn configure(&mut self, persistent: bool) -> Result<(), ConfigStoreError> {
         if let Some(config) = &self.config {
-            config::ch9120_store_config(
+            config::configure(
                 config,
+                persistent,
                 self.uart.inner(),
                 &mut self.cfg_pin,
                 &mut self.rst_pin,
