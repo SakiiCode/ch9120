@@ -70,13 +70,14 @@ async fn wait_for_ack<T: Read>(uart: &mut T) {
     let timeout_future = Timer::after_secs(2);
     match select(read_future, timeout_future).await {
         Either::First(bytes) => {
-            let bytes = bytes.unwrap_or_default();
-            if response[0] != 0xaa {
-                #[cfg(feature = "defmt")]
-                defmt::error!("Invalid reponse: {=[u8]:02x} ({})", response, bytes);
-            } else {
-                #[cfg(feature = "defmt")]
-                defmt::debug!("<- {=[u8]:02x} ({})", response, bytes);
+            #[cfg(feature = "defmt")]
+            {
+                let bytes = bytes.unwrap_or_default();
+                if response[0] != 0xaa {
+                    defmt::error!("Invalid reponse: {=[u8]:02x} ({})", response, bytes);
+                } else {
+                    defmt::debug!("<- {=[u8]:02x} ({})", response, bytes);
+                }
             }
         }
         Either::Second(_) => {
