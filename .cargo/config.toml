@@ -31,6 +31,3 @@ target = "thumbv8m.main-none-eabihf"
 
 [env]
 DEFMT_LOG = "debug"
-DEP_LV_CONFIG_PATH = { relative = true, value = "." }
-BINDGEN_EXTRA_CLANG_ARGS = "-I/usr/include"
-CROSS_COMPILE = "arm-none-eabi"

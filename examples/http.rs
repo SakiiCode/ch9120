@@ -106,8 +106,7 @@ async fn setup_ch9120(
     static RX_BUF: StaticCell<[u8; 128]> = StaticCell::new();
     let rx_buf = RX_BUF.init([0; 128]);
 
-    let mut uart_config = uart::Config::default();
-    uart_config.baudrate = 9600;
+    let uart_config = uart::Config::default();
     let uart = BufferedUart::new(uart, tx_pin, rx_pin, Irqs, tx_buf, rx_buf, uart_config);
 
     defmt::info!("CH9120 initialized");
